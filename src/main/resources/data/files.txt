@@ -1,0 +1,5 @@
+-- This file lists the available transcriptions and their text files
+
+voyn_101.txt,	GC's transcription
+text16e6.evt,	Interlinear transcription 16.6
+unit16e6.txt,	index for the interlinear transcription
