@@ -1,7 +1,7 @@
 import former
 from former.util import d, compute_compression, sample
 
-import fire, tqdm, random, wandb
+import fire, tqdm, random, wandb, math
 
 from collections import Counter
 
