@@ -9,6 +9,9 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 
+# Used for converting between nats and bits
+LOG2E = math.log2(math.e)
+LOGE2 = math.log(2.0)
 
 def estimate_compression(model, data, nsamples, context, batch_size, verbose=False, model_produces_logits=False):
     """
@@ -233,7 +236,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
             nn.utils.clip_grad_norm_(model.parameters(), gradient_clipping)
 
         wandb.log({
-            'loss': loss
+            'loss (bits)': loss * LOG2E
         })
 
         opt.step()  # stochastic gradient descent step
