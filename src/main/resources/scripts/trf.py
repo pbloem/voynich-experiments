@@ -103,6 +103,8 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
 
     trainsize = int(len(corpus) * trainprop)
     train, val = corpus[:trainsize], corpus[trainsize:]
+    if torch.cuda.is_available():
+        train, val = train.cuda(), val.cuda()
 
     # Train model in random batches
     # create the model
@@ -164,7 +166,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
                 print(seq[:seedlength], seq[seedlength:])
 
                 ## Compute validation bits per byte
-                bits_per_byte = compute_compression(model, val, context=context, batch_size=batch_size * 2)
+                bits_per_byte = compute_compression(model, val, context=context, batch_size=batch_size * 2) / val.size(0)
                 print(f'epoch{i}: {bits_per_byte:.4} bits per byte')
 
                 wandb.log({
