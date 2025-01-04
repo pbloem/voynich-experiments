@@ -160,7 +160,7 @@ def sample_batch(data, length, batch_size):
 
 def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100_000, batch_size=64, context=64,
        emb=256, layers=12, lr=3e-4, gradient_clipping=1.0, test_every=1000, lr_warmup=10_000, sample_length=128,
-       seedlength=32, debug=False, name='vms-trf', project='vms-trf'):
+       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500):
 
     parms = locals()
 
@@ -256,7 +256,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
                 print(seq[:seedlength], seq[seedlength:])
 
                 ## Compute validation bits per byte
-                bits_per_byte = estimate_compression(model, val, context=context, batch_size=batch_size * 2) / val.size(0)
+                bits_per_byte = estimate_compression(model, val, context=context, batch_size=batch_size * 2, nsamples=valsamples)
                 print(f'epoch{i}: {bits_per_byte:.4} bits per byte')
 
                 wandb.log({
