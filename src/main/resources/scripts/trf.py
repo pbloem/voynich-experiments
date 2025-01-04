@@ -225,7 +225,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
             source, target = source.cuda(), target.cuda()
 
         if input_dropout > 0.0:
-            prob = torch.fill_like(source, fill_value=input_dropout)
+            prob = torch.full_like(source, fill_value=input_dropout)
             mask = torch.bernoulli(prob)
             source[mask] = 0 # masking token 😷
 
