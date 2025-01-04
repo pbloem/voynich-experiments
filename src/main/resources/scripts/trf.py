@@ -72,7 +72,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
        emb=256, layers=12, lr=3e-4, gradient_clipping=1.0, test_every=1000, lr_warmup=10_000, sample_length=128,
        seedlength=32, debug=False, name='vms-trf', project='vms-trf'):
 
-    parms = local()
+    parms = locals()
 
     wd = wandb.init(
         name=name,
