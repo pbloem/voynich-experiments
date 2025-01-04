@@ -163,7 +163,7 @@ def sample_batch(data, length, batch_size):
 
 def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100_000, batch_size=64, context=64,
        emb=256, layers=12, lr=3e-4, gradient_clipping=1.0, test_every=1000, lr_warmup=10_000, sample_length=128,
-       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500):
+       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500, input_dropout=.3):
 
     parms = locals()
 
@@ -187,7 +187,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
     corpus = joinchar.join(tokens)
 
     ctr = Counter(corpus)
-    chars = [c for c, _ in ctr.most_common()]
+    chars = ['😷'] + [c for c, _ in ctr.most_common()] # Masking token + all chars in the corpus
     i2c, c2i = {i: c for i,c in enumerate(chars)}, {c:i for i,c in enumerate(chars)}
     print(f'Loaded corpus. {len(i2c)} characters found.')
 
@@ -223,6 +223,11 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
 
         if torch.cuda.is_available():
             source, target = source.cuda(), target.cuda()
+
+        if input_dropout > 0.0:
+            prob = torch.fill_like(source, fill_value=input_dropout)
+            mask = torch.bernoulli(prob)
+            source[mask] = 0 # masking token 😷
 
         output = model(source)  # forward pass
 
