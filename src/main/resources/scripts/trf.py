@@ -226,7 +226,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
 
         if input_dropout > 0.0:
             prob = torch.full(size=source.size(), fill_value=input_dropout, device=d())
-            mask = torch.bernoulli(prob)
+            mask = torch.bernoulli(prob).to(torch.bool)
             source[mask] = 0 # masking token 😷
 
         output = model(source)  # forward pass
