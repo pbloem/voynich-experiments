@@ -77,7 +77,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
     wd = wandb.init(
         name=name,
         project=project,
-        config=locals(),
+        config=parms,
         mode= 'disabled' if debug else 'online'
     )
 
