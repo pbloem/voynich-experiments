@@ -56,7 +56,7 @@ def estimate_compression(model, data, nsamples, context, batch_size, verbose=Fal
             # the index in the output tensor of the character we want to predict
             # -- It's context + 1, because we clip off the last token as a target
 
-            pad = torch.zeros(size=(context + 1 - instance.size(0),), dtype=torch.long)
+            pad = torch.zeros(size=(context + 1 - instance.size(0),), dtype=torch.long, device=d())
             instance = torch.cat([instance, pad], dim=0)
             # -- the first tokens don't have enough tokens preceding them, so we pad them to the right size.
 
