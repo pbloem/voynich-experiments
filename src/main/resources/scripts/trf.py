@@ -3,11 +3,17 @@ from former.util import d, compute_compression, sample
 
 import fire, tqdm, random, wandb, math
 
+import numpy as np
+
 from collections import Counter
 
 import torch
 from torch import nn
 import torch.nn.functional as F
+
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 # Used for converting between nats and bits
 LOG2E = math.log2(math.e)
@@ -163,7 +169,7 @@ def sample_batch(data, length, batch_size):
 
 def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100_000, batch_size=64, context=64,
        emb=256, layers=12, lr=3e-4, gradient_clipping=1.0, test_every=1000, lr_warmup=10_000, sample_length=128,
-       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500, input_dropout=.3):
+       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500, input_dropout=.3, modelfile='model.cpt'):
 
     parms = locals()
 
@@ -277,24 +283,93 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
         'parms' : parms,
         'i2c' : i2c,
         'c2i' : c2i
-    }, 'model.cpt')
+    }, modelfile)
+
+    print('Saved model, tokenizing.')
 
     # Tokenize
-    tokenize(model, corpus, i2c, c2i)
+    tokenize(model, corpus, i2c, c2i, context=context)
 
-def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', infile=None):
+def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', infile=None, tagged=False, batch_size=128, context=12, rm_whitespace=True):
 
-    if type(model is str):
-        pass
-        # load model and dicts
+    if type(model) is str:
+        # with open(model, 'rb') as mf:
+        cp = torch.load(model, weights_only=True) # load model and dicts
+
+        parms = cp['parms']
+        i2c, c2i = cp['i2c'], cp['c2i']
+
+        heads = parms['emb'] // 64
+        model = former.GTransformer(emb=parms['emb'], heads=heads, depth=parms['layers'], seq_length=parms['context'],
+                         num_tokens=len(i2c))
+
+        model.load_state_dict(cp['model'])
+
+        if torch.cuda.is_available():
+            model.cuda()
 
     if corpus is None:
-        pass
+        # Read file to corpus (strip whitespace)
+        with open(infile, 'r') as file:
+            all = file.read()
+
+        if tagged:
+            tokens = [token.split('.')[0] for token in all.split()]
+        else:
+            tokens = all.split()
+
+        joinchar = '' if rm_whitespace else '_'
+
+        corpus = joinchar.join(tokens)
+        corpus = torch.tensor([c2i[c] for c in corpus], device=d())
 
     # Compute all entropies on character boundaries
+    # entropies[i] indicates the entropy
+    batch = []
+    entropies = []
 
+    with torch.no_grad():
+        for i in tqdm.trange(len(corpus)):
+            fr = max(0, i - context)
+            inst = corpus[fr:i]
+            inst = torch.cat( [torch.zeros(device=d(), dtype=torch.long, size = (context - len(inst),)), inst], dim=0)
+            assert inst.size() == (context,)
+
+            batch.append(inst[None,:])
+
+            if len(batch) == batch_size or i == len(corpus) - 1:
+                batch = torch.cat(batch, dim=0)
+
+                output = model(batch)
+
+                l2probs = output[:, -1, :] * LOG2E
+                ents = -(l2probs * (l2probs).exp2()).sum(dim=1) # entropy in nats
+                entropies.extend(e.item() for e in ents)
+
+                if random.random() < 0.001:
+                    print(np.mean(entropies))
+
+                batch = []
+
+    print(len(entropies), entropies[:20])
 
     # Make plots
+    mean, std = np.mean(entropies), np.std(entropies)
+    print(mean, std)
+
+    plt.hist(entropies, bins=100)
+    plt.savefig('entropies.hist.png')
+
+    l = 50
+    r = 5_000, 5_000 + l
+
+    plt.figure(figsize=(l, 4))
+    plt.bar(np.arange(l), entropies[r[0]:r[1]], width=0.3)
+    plt.xticks(np.arange(l)-  0.5, ''.join(i2c[i.item()]for i in corpus[r[0]:r[1]]) )
+    plt.axhline(mean, linestyle='-')
+    plt.axhline(mean + std, linestyle=':')
+
+    plt.savefig('entropies.bars.png')
 
     # Tokenize the corpus
 
