@@ -378,7 +378,7 @@ def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', in
     for i in range(len(corpus)):
         ent = entropies[i]
         if ent > mean + threshold * std: # new break between i and i+1
-            tokens.append(corpus[lastbreak:i])
+            tokens.append( ''.join(i2c[i.item()] for i in corpus[lastbreak:i]) )
             lastbreak = i
 
     tokens.append(corpus[lastbreak:])
