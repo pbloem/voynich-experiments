@@ -365,7 +365,7 @@ def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', in
 
     plt.figure(figsize=(l, 4))
     plt.bar(np.arange(l), entropies[r[0]:r[1]], width=0.3)
-    plt.xticks(np.arange(l), ''.join(i2c[i.item()]for i in corpus[r[0]:r[1]]) )
+    plt.xticks(np.arange(l), ''.join(i2c[i.item()] for i in corpus[r[0]:r[1]]) )
     plt.axhline(mean, linestyle='-')
     plt.axhline(mean + std, linestyle=':')
 
@@ -373,6 +373,18 @@ def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', in
 
     # Tokenize the corpus
 
+    tokens = []
+    lastbreak = 0 # first character after the last break
+    for i in range(len(corpus)):
+        ent = entropies[i]
+        if ent > mean + threshold * std: # new break between i and i+1
+            tokens.append(corpus[lastbreak:i+1])
+            lastbreak = i+1
+
+    tokens.append(corpus[lastbreak:])
+
+    with open(outfile, 'w') as file:
+        file.write(' '.join(tokens))
 
 if __name__ == '__main__':
     fire.Fire()
