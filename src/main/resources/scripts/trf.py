@@ -290,7 +290,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
     # Tokenize
     tokenize(model, corpus, i2c, c2i, context=context)
 
-def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', infile=None, tagged=False, batch_size=128, context=12, rm_whitespace=True):
+def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', infile=None, tagged=False, batch_size=128, context=12, rm_whitespace=True, threshold=0.5):
 
     if type(model) is str:
         # with open(model, 'rb') as mf:
@@ -378,8 +378,8 @@ def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', in
     for i in range(len(corpus)):
         ent = entropies[i]
         if ent > mean + threshold * std: # new break between i and i+1
-            tokens.append(corpus[lastbreak:i+1])
-            lastbreak = i+1
+            tokens.append(corpus[lastbreak:i])
+            lastbreak = i
 
     tokens.append(corpus[lastbreak:])
 
