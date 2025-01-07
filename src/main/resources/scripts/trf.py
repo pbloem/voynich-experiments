@@ -169,7 +169,8 @@ def sample_batch(data, length, batch_size):
 
 def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100_000, batch_size=64, context=64,
        emb=256, layers=12, lr=3e-4, gradient_clipping=1.0, test_every=1000, lr_warmup=10_000, sample_length=128,
-       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500, input_dropout=.3, modelfile='model.cpt'):
+       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500, input_dropout=.3, modelfile='model.cpt',
+       threshold=0.75):
 
     parms = locals()
 
@@ -288,7 +289,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
     print('Saved model, tokenizing.')
 
     # Tokenize
-    tokenize(model, corpus, i2c, c2i, context=context)
+    tokenize(model, corpus, i2c, c2i, context=context, threshold=threshold)
 
 def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', infile=None, tagged=False, batch_size=128, context=12, rm_whitespace=True, threshold=0.5):
 
