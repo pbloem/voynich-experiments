@@ -324,7 +324,7 @@ def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', in
         corpus = torch.tensor([c2i[c] for c in corpus], device=d())
 
     # Compute all entropies on character boundaries
-    # entropies[i] indicates the entropy
+    # entropies[i] indicates the entropy on the prediction of the character after corpus[i]
     batch = []
     entropies = []
 
@@ -365,7 +365,7 @@ def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', in
 
     plt.figure(figsize=(l, 4))
     plt.bar(np.arange(l), entropies[r[0]:r[1]], width=0.3)
-    plt.xticks(np.arange(l)-  0.5, ''.join(i2c[i.item()]for i in corpus[r[0]:r[1]]) )
+    plt.xticks(np.arange(l), ''.join(i2c[i.item()]for i in corpus[r[0]-1:r[1]-1]) )
     plt.axhline(mean, linestyle='-')
     plt.axhline(mean + std, linestyle=':')
 
