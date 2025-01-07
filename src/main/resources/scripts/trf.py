@@ -381,7 +381,7 @@ def tokenize(model, corpus=None, i2c=None, c2i=None, outfile='tokenized.txt', in
             tokens.append( ''.join(i2c[i.item()] for i in corpus[lastbreak:i]) )
             lastbreak = i
 
-    tokens.append(corpus[lastbreak:])
+    tokens.append(''.join(i2c[i.item()] for i in corpus[lastbreak:]))
 
     with open(outfile, 'w') as file:
         file.write(' '.join(tokens))
