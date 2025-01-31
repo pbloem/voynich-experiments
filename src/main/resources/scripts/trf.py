@@ -169,8 +169,8 @@ def sample_batch(data, length, batch_size):
 
 def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100_000, batch_size=64, context=64,
        emb=256, layers=12, lr=3e-4, gradient_clipping=1.0, test_every=1000, lr_warmup=10_000, sample_length=128,
-       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500, input_dropout=.3, modelfile='model.cpt',
-       threshold=0.75):
+       seedlength=32, debug=False, name='vms-trf', project='vms-trf', valsamples=500, input_dropout=.3,
+       modelfile='model.cpt', threshold=0.75, wd=0.0):
 
     parms = locals()
 
@@ -214,7 +214,7 @@ def go(infile, rm_whitespace=True, tagged=False, trainprop=0.95, num_batches=100
     if torch.cuda.is_available():
         model.cuda()
 
-    opt = torch.optim.Adam(lr=lr, params=model.parameters())
+    opt = torch.optim.AdamW(lr=lr, params=model.parameters(), weight_decay=wd)
 
     # Linear learning rate warmup
     sch = torch.optim.lr_scheduler.LambdaLR(opt, lambda i: min(i / (lr_warmup / batch_size), 1.0))
